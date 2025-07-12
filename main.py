@@ -27,7 +27,7 @@ initial_cash = st.sidebar.number_input("Initial Capital ($)", value=100_000, ste
 fees = st.sidebar.slider("Transaction Fees (%)", 0.0, 0.1, 0.01) / 100
 size_type = st.sidebar.selectbox("Position Sizing", ["Percent", "Target Percent", "Fixed"])
 if size_type == "Percent":
-    size = st.sidebar.slider("Position Size (% of Portfolio)", 10, 100, 25) / 100
+    size = st.sidebar.slider("Position Size (% of Portfolio)", 10, 100, 10) / 100
 elif size_type == "Target Percent":
     size = st.sidebar.slider("Target Position (% of Portfolio)", 10, 100, 50) / 100
 else:
@@ -255,6 +255,8 @@ class VectorbtPivotStrategy:
         # 1. Split entry signals
         long_entries = entries & (direction == 1)
         short_entries = entries & (direction == -1)
+        # long_entries = long_entries.shift(1, fill_value=False)
+        # short_entries = short_entries.shift(1, fill_value=False)
 
         size_param = self.params['size'] * self.params['initial_cash']
         size_type_vbt = 'value'
@@ -518,13 +520,15 @@ if enable_optimization and st.button("🔧 Optimize Parameters"):
 
 # Detailed trade analysis
 st.subheader("📋 Trade Details")
-trades_df = portfolio.trades.records_readable
+trades_df = portfolio.trades.records_readable.copy()
+
 if len(trades_df) > 0:
     # Format trades dataframe
 
     display_trades = trades_df[[
         'Entry Timestamp',
         'Exit Timestamp',
+        'Direction',
         'Size',
         'Avg Entry Price',
         'Avg Exit Price',
